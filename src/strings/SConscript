@@ -4,13 +4,12 @@ Import("env")
 
 env = env.Clone()
 
-env.Append(CCFLAGS=['-I.'])
+env.Append(CCFLAGS=['-Isrc'])
 
 env.Library(
-    "base",
+    "strings",
     [
-	"int128.cc",
-	"logging.cc",
+	"split.cc",
 	"stringprintf.cc",
-	"strtoint.cc",
+	"strutil.cc",
     ])

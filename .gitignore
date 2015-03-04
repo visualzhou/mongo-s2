@@ -1,6 +1,7 @@
 #netbeans ignore personal stuff
 .sconsign.dblite
 build/
+*.pyc
 
 ## generic files to ignore
 *~
