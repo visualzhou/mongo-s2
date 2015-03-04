@@ -11,7 +11,8 @@ env.SConscript( [
 	"util/math/SConscript",
         ], exports={ 'env' : env })
 
-env.Append(CCFLAGS=['-DDEBUG_MODE=false'])
+# env.Append(CCFLAGS=['-DDEBUG_MODE=false'])
+env.Append(CCFLAGS=['-I.'])
 
 # Clang warns about struct/class tag mismatch, but as long as this is
 # not a problem on Windows, these mismatches can be ignored
@@ -43,10 +44,10 @@ env.Library( "s2",
 	"s2regioncoverer.cc",
 	"s2regionintersection.cc",
 	"s2regionunion.cc",
-    ], LIBDEPS=['$BUILD_DIR/third_party/s2/base/base',
-		'$BUILD_DIR/third_party/s2/strings/strings',
-		'$BUILD_DIR/third_party/s2/util/coding/coding',
-		'$BUILD_DIR/third_party/s2/util/math/math'])
+    ], LIBDEPS=['$BUILD_DIR/base/base',
+		'$BUILD_DIR/strings/strings',
+		'$BUILD_DIR/util/coding/coding',
+		'$BUILD_DIR/util/math/math'])
 
 #env.Program('r1interval_test', ['r1interval_test.cc'],
 #            LIBDEPS=['s2', '$BUILD_DIR/third_party/gtest/gtest_with_main'])

@@ -18,9 +18,6 @@ using std::vector;
 #include "s2latlng.h"
 #include "s2edgeutil.h"
 
-#include "mongo/util/mongoutils/str.h"
-using mongoutils::str::stream;
-
 static const unsigned char kCurrentEncodingVersionNumber = 1;
 
 S2Polyline::S2Polyline()

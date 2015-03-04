@@ -14,27 +14,27 @@
 #ifndef BASE_LOGGING_H
 #define BASE_LOGGING_H
 
-#include <iosfwd>
+#include <stdlib.h>
+#include <iostream>
+#include <sstream>
+using std::ostream;
+using std::cout;
+using std::endl;
 
-#include "mongo/logger/log_severity.h"
-#include "mongo/logger/logger.h"
-#include "mongo/logger/logstream_builder.h"
-#include "mongo/util/concurrency/thread_name.h"
-
-#include "macros.h"
+#include "base/macros.h"
 
 // Always-on checking
-#define CHECK(x)	if(x){}else LogMessageFatal(__FILE__, __LINE__).stream() << "Check failed: " #x
-#define CHECK_LT(x, y)	CHECK((x) < (y))
-#define CHECK_GT(x, y)	CHECK((x) > (y))
-#define CHECK_LE(x, y)	CHECK((x) <= (y))
-#define CHECK_GE(x, y)	CHECK((x) >= (y))
-#define CHECK_EQ(x, y)	CHECK((x) == (y))
-#define CHECK_NE(x, y)	CHECK((x) != (y))
+#define CHECK(x)    if(x){}else LogMessageFatal(__FILE__, __LINE__).stream() << "Check failed: " #x
+#define CHECK_LT(x, y)  CHECK((x) < (y))
+#define CHECK_GT(x, y)  CHECK((x) > (y))
+#define CHECK_LE(x, y)  CHECK((x) <= (y))
+#define CHECK_GE(x, y)  CHECK((x) >= (y))
+#define CHECK_EQ(x, y)  CHECK((x) == (y))
+#define CHECK_NE(x, y)  CHECK((x) != (y))
 #define CHECK_NOTNULL(x) CHECK((x) != NULL)
 
-#ifdef _DEBUG
-// Checking which is only fatal in debug mode
+#ifndef NDEBUG
+// Debug-only checking.
 #define DCHECK(condition) CHECK(condition)
 #define DCHECK_EQ(val1, val2) CHECK_EQ(val1, val2)
 #define DCHECK_NE(val1, val2) CHECK_NE(val1, val2)
@@ -43,65 +43,80 @@
 #define DCHECK_GE(val1, val2) CHECK_GE(val1, val2)
 #define DCHECK_GT(val1, val2) CHECK_GT(val1, val2)
 #else
-#define DCHECK(x) if(x){}else LogMessageWarning(__FILE__, __LINE__).stream() << "Check failed: " #x
-#define DCHECK_LT(x, y)  DCHECK((x) < (y))
-#define DCHECK_GT(x, y)  DCHECK((x) > (y))
-#define DCHECK_LE(x, y)  DCHECK((x) <= (y))
-#define DCHECK_GE(x, y)  DCHECK((x) >= (y))
-#define DCHECK_EQ(x, y)  DCHECK((x) == (y))
-#define DCHECK_NE(x, y)  DCHECK((x) != (y))
+#define DCHECK(condition) CHECK(false)
+#define DCHECK_EQ(val1, val2) CHECK(false)
+#define DCHECK_NE(val1, val2) CHECK(false)
+#define DCHECK_LE(val1, val2) CHECK(false)
+#define DCHECK_LT(val1, val2) CHECK(false)
+#define DCHECK_GE(val1, val2) CHECK(false)
+#define DCHECK_GT(val1, val2) CHECK(false)
 #endif
 
-#include "base/port.h"
-#define INFO LogMessageInfo().stream()
-#define FATAL LogMessageFatal(__FILE__, __LINE__).stream()
-#define DFATAL LogMessageFatal(__FILE__, __LINE__).stream()
+#define LOG_INFO LogMessage(__FILE__, __LINE__)
+#define LOG_ERROR LOG_INFO
+#define LOG_WARNING LOG_INFO
+#define LOG_FATAL LogMessageFatal(__FILE__, __LINE__)
+#define LOG_QFATAL LOG_FATAL
 
-// VLOG messages will be logged at debug level 5 with the S2 log component.
-#define S2LOG(x) x
-// Expansion of MONGO_LOG_COMPONENT defined in mongo/util/log.h
-#define VLOG(x) \
-    if (!(::mongo::logger::globalLogDomain())->shouldLog(::mongo::logger::LogComponent::kGeo, ::mongo::logger::LogSeverity::Debug(5))) {} \
-    else ::mongo::logger::LogstreamBuilder(::mongo::logger::globalLogDomain(), ::mongo::getThreadName(), ::mongo::logger::LogSeverity::Debug(5), ::mongo::logger::LogComponent::kGeo)
+#define VLOG(x) if((x)>0){} else LOG_INFO.stream()
 
-class LogMessageBase {
-public:
-    LogMessageBase(::mongo::logger::LogstreamBuilder builder);
-    LogMessageBase(::mongo::logger::LogstreamBuilder builder, const char* file, int line);
-    virtual ~LogMessageBase() { };
-    std::ostream& stream() { return _lsb.stream(); }
-protected:
-    // Fatal message will deconstruct it before abort to flush final message.
-    mongo::logger::LogstreamBuilder _lsb;
-private:
-    DISALLOW_COPY_AND_ASSIGN(LogMessageBase);
+#ifdef NDEBUG
+#define DEBUG_MODE false
+#define LOG_DFATAL LOG_ERROR
+#else
+#define DEBUG_MODE true
+#define LOG_DFATAL LOG_FATAL
+#endif
+
+#define LOG(severity) LOG_ ## severity.stream()
+#define S2LOG(severity) LOG_ ## severity.stream()
+#define LG LOG_INFO.stream()
+
+namespace google_base {
+class DateLogger {
+ public:
+  DateLogger();
+  char* const HumanDate();
+ private:
+  char buffer_[9];
+};
+}  // namespace google_base
+
+class LogMessage {
+ public:
+  LogMessage(const char* file, int line) {
+    std::cerr << "[" << pretty_date_.HumanDate() << "] "
+              << file << ":" << line << ": ";
+  }
+  ~LogMessage() { std::cerr << "\n"; }
+  std::ostream& stream() { return std::cerr; }
+
+ private:
+  google_base::DateLogger pretty_date_;
+  DISALLOW_COPY_AND_ASSIGN(LogMessage);
 };
 
-class LogMessageInfo : public LogMessageBase {
-public:
-    LogMessageInfo();
-    virtual ~LogMessageInfo() { };
-
-private:
-    DISALLOW_COPY_AND_ASSIGN(LogMessageInfo);
+class LogMessageFatal : public LogMessage {
+ public:
+  LogMessageFatal(const char* file, int line)
+    : LogMessage(file, line) { }
+  ~LogMessageFatal() {
+    std::cerr << "\n";
+    abort();
+  }
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LogMessageFatal);
 };
 
-class LogMessageWarning : public LogMessageBase {
+class stream {
 public:
-    LogMessageWarning(const char* file, int line);
-    virtual ~LogMessageWarning();
-
-private:
-    DISALLOW_COPY_AND_ASSIGN(LogMessageWarning);
-};
-
-class LogMessageFatal : public LogMessageBase {
-public:
-    LogMessageFatal(const char* file, int line);
-    virtual ~LogMessageFatal();
-
-private:
-    DISALLOW_COPY_AND_ASSIGN(LogMessageFatal);
+    std::stringstream ss;
+    template<class T>
+    stream& operator<<(const T& v) {
+        ss << v;
+        return *this;
+    }
+    operator std::string () const { return ss.str(); }
 };
 
 #endif  // BASE_LOGGING_H

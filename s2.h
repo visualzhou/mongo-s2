@@ -19,12 +19,12 @@ using std::reverse;
 #include "hash.h"
 
 // To have template struct hash<T> defined
-#include "third_party/s2/base/basictypes.h"
-#include "third_party/s2/base/logging.h"
-#include "third_party/s2/base/macros.h"
-#include "third_party/s2/base/port.h"  // for HASH_NAMESPACE_DECLARATION_START
-#include "third_party/s2/util/math/vector3-inl.h"
-#include "third_party/s2/util/math/matrix3x3.h"
+#include "base/basictypes.h"
+#include "base/logging.h"
+#include "base/macros.h"
+#include "base/port.h"  // for HASH_NAMESPACE_DECLARATION_START
+#include "util/math/vector3-inl.h"
+#include "util/math/matrix3x3.h"
 
 
 // An S2Point represents a point on the unit sphere as a 3D vector.  Usually

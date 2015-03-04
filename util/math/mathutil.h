@@ -108,8 +108,8 @@ template<typename T> struct MathLimits {
 // Disable error about fabs causing truncation of value because
 // it takes a double instead of a long double (Clang 3.5)
 // See SERVER-15183
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wabsolute-value"
+// #pragma clang diagnostic push
+// #pragma clang diagnostic ignored "-Wabsolute-value"
 
 class MathUtil {
  public:
@@ -752,6 +752,6 @@ bool MathUtil::WithinFractionOrMargin(const T x, const T y,
   }
 }
 
-#pragma clang diagnostic pop
+// #pragma clang diagnostic pop
 
 #endif  // UTIL_MATH_MATHUTIL_H__

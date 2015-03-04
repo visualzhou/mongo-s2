@@ -1,5 +1,6 @@
 #netbeans ignore personal stuff
 .sconsign.dblite
+build/
 
 ## generic files to ignore
 *~
@@ -15,6 +16,7 @@
 *.exe
 *.o
 *.so
+*.a
 
 # Packages #
 ############

@@ -49,11 +49,6 @@ static void Init() {
   }
 }
 
-MONGO_INITIALIZER_WITH_PREREQUISITES(S2RegionCovererInit, ("S2CellIdInit"))(mongo::InitializerContext *context) {
-    Init();
-    return mongo::Status::OK();
-}
-
 S2RegionCoverer::S2RegionCoverer() :
   min_level_(0),
   max_level_(S2CellId::kMaxLevel),
