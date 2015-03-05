@@ -21,7 +21,7 @@ env.Append(CCFLAGS=['-Isrc'])
 if use_clang:
 	env.Append(CCFLAGS=['-Wno-mismatched-tags'])
 
-	env.Library( "s2",
+env.Library( "s2",
 		[
 		"s1angle.cc",
 		"s2.cc",
@@ -49,6 +49,8 @@ if use_clang:
 		'util/coding/coding',
 		'util/math/math'])
 
+env.SharedLibrary("s2parser", ["s2parser.cc"], LIBDEPS=["s2"]);
+
 #env.Program('r1interval_test', ['r1interval_test.cc'],
 #            LIBDEPS=['s2', '$BUILD_DIR/third_party/gtest/gtest_with_main'])
 #env.Program('s1angle_test', ['s1angle_test.cc'],
@@ -61,3 +63,4 @@ if use_clang:
 #            LIBDEPS=['s2', '$BUILD_DIR/third_party/gtest/gtest_with_main'])
 env.Program('main_test', ['main_test.cc'],
 	LIBDEPS=['s2']);
+

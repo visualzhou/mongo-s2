@@ -9,7 +9,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
     string hash_string = "0f022022";
-    if (argc > 0) {
+    if (argc > 1) {
         hash_string = string(argv[1]);
     }
     S2CellId start = S2CellId::FromString(hash_string);
