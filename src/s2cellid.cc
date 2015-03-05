@@ -94,6 +94,11 @@ static void Init() {
   InitLookupCell(0, 0, 0, kSwapMask|kInvertMask, 0, kSwapMask|kInvertMask);
 }
 
+static pthread_once_t init_once = PTHREAD_ONCE_INIT;
+inline static void MaybeInit() {
+  pthread_once(&init_once, Init);
+}
+
 int S2CellId::level() const {
   // Fast path for leaf cells.
   if (is_leaf()) return kMaxLevel;
@@ -205,6 +210,9 @@ inline int S2CellId::STtoIJ(double s) {
 
 
 S2CellId S2CellId::FromFaceIJ(int face, int i, int j) {
+  // Initialization if not done yet
+  MaybeInit();
+
   // Optimization notes:
   //  - Non-overlapping bit fields can be combined with either "+" or "|".
   //    Generally "+" seems to produce better code, but not always.
@@ -264,6 +272,9 @@ S2CellId S2CellId::FromLatLng(S2LatLng const& ll) {
 }
 
 int S2CellId::ToFaceIJOrientation(int* pi, int* pj, int* orientation) const {
+  // Initialization if not done yet
+  MaybeInit();
+
   int i = 0, j = 0;
   int face = this->face();
   int bits = (face & kSwapMask);

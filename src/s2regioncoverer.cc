@@ -49,6 +49,11 @@ static void Init() {
   }
 }
 
+static pthread_once_t init_once = PTHREAD_ONCE_INIT;
+inline static void MaybeInit() {
+  pthread_once(&init_once, Init);
+}
+
 S2RegionCoverer::S2RegionCoverer() :
   min_level_(0),
   max_level_(S2CellId::kMaxLevel),
@@ -57,6 +62,8 @@ S2RegionCoverer::S2RegionCoverer() :
   region_(NULL),
   result_(new vector<S2CellId>),
   pq_(new CandidateQueue) {
+  // Initialize the constants
+  MaybeInit();
 }
 
 S2RegionCoverer::~S2RegionCoverer() {
