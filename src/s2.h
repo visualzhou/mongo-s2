@@ -17,6 +17,7 @@ using std::reverse;
 #endif
 
 #include "hash.h"
+using std::hash;
 
 // To have template struct hash<T> defined
 #include "base/basictypes.h"
