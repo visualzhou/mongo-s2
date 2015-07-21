@@ -18,11 +18,10 @@ struct LngLat {
     double lat;
 };
 
-vector<LngLat> translateGeoHash(string hash_string) {
+vector<LngLat> cellToPolgyon(S2CellId id) {
     std::vector<LngLat> polygons;
 
-    S2CellId start = S2CellId::FromString(hash_string);
-    S2Cell cell(start);
+    S2Cell cell(id);
     for (int i = 0; i < 5; ++i) {
         S2Point point = cell.GetVertex(i % 4);
         S2LatLng s2ll(point);
@@ -31,8 +30,24 @@ vector<LngLat> translateGeoHash(string hash_string) {
         ll.lng = s2ll.lng().degrees();
         polygons.push_back(ll);
     }
-
     return polygons;
+}
+
+vector<LngLat> translateGeoHash(string hash_string) {
+    S2CellId start = S2CellId::FromString(hash_string);
+    return cellToPolgyon(start);
+}
+
+vector<LngLat> translateGeoHashFromNumbers(long long min, long long max) {
+    // Find the common parent of min and max.
+    S2CellId minCellId = S2CellId(static_cast<uint64>(min));
+    S2CellId maxCellId = S2CellId(static_cast<uint64>(max));
+    S2CellId parentId = minCellId;
+    // Assume min and max share the same parent, otherwise fail loudly.
+    while (!parentId.contains(maxCellId)) {
+        parentId = parentId.parent();
+    }
+    return cellToPolgyon(parentId);
 }
 
 EMSCRIPTEN_BINDINGS(s2_wrappers) {
@@ -44,6 +59,7 @@ EMSCRIPTEN_BINDINGS(s2_wrappers) {
     register_vector<LngLat>("VectorLngLat");
 
     function("translateGeoHash", &translateGeoHash);
+    function("translateGeoHashFromNumbers", &translateGeoHashFromNumbers);
 }
 
 int main(int argc, char* argv[]) {
@@ -53,9 +69,22 @@ int main(int argc, char* argv[]) {
     }
 
     cout << hash_string << endl;
-
     auto points = translateGeoHash(hash_string);
     for (auto ll : points) {
+        cout << ll.lng << " " << ll.lat << endl;
+    }
+
+    // Test numerical type index format
+    cout << endl;
+    S2CellId cell = S2CellId::FromString(hash_string);
+    for (auto ll : translateGeoHashFromNumbers(cell.range_min().id(), cell.range_max().id())) {
+        cout << ll.lng << " " << ll.lat << endl;
+    }
+
+    // Test a real case
+    cout << endl;
+    long long min = 3563805708640059393LL, max = 3563805710787543039LL;
+    for (auto ll : translateGeoHashFromNumbers(min, max)) {
         cout << ll.lng << " " << ll.lat << endl;
     }
 }
