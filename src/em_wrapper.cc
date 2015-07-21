@@ -38,10 +38,10 @@ vector<LngLat> translateGeoHash(string hash_string) {
     return cellToPolgyon(start);
 }
 
-vector<LngLat> translateGeoHashFromNumbers(long long min, long long max) {
+vector<LngLat> translateGeoHashFromNumbers(string minStr, string maxStr) {
     // Find the common parent of min and max.
-    S2CellId minCellId = S2CellId(static_cast<uint64>(min));
-    S2CellId maxCellId = S2CellId(static_cast<uint64>(max));
+    S2CellId minCellId = S2CellId(static_cast<uint64>(std::stoll(minStr)));
+    S2CellId maxCellId = S2CellId(static_cast<uint64>(std::stoll(maxStr)));
     S2CellId parentId = minCellId;
     // Assume min and max share the same parent, otherwise fail loudly.
     while (!parentId.contains(maxCellId)) {
@@ -76,14 +76,7 @@ int main(int argc, char* argv[]) {
 
     // Test numerical type index format
     cout << endl;
-    S2CellId cell = S2CellId::FromString(hash_string);
-    for (auto ll : translateGeoHashFromNumbers(cell.range_min().id(), cell.range_max().id())) {
-        cout << ll.lng << " " << ll.lat << endl;
-    }
-
-    // Test a real case
-    cout << endl;
-    long long min = 3563805708640059393LL, max = 3563805710787543039LL;
+    string min = "3563805708640059393", max = "3563805710787543039";
     for (auto ll : translateGeoHashFromNumbers(min, max)) {
         cout << ll.lng << " " << ll.lat << endl;
     }
