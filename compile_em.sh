@@ -1,4 +1,4 @@
-em++ -Isrc -std=c++11 --bind -o s2.js \
+em++ -Isrc -std=c++11 --bind -s NO_EXIT_RUNTIME=1 -o s2.js \
 "src/base/int128.cc" \
 "src/base/logging.cc" \
 "src/base/stringprintf.cc" \
