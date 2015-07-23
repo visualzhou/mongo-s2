@@ -19,4 +19,5 @@ em++ -Isrc -std=c++11 --bind -s NO_EXIT_RUNTIME=1 -o s2.js \
 "src/s2edgeutil.cc" \
 "src/s2latlngrect.cc" \
 "src/s2region.cc" \
+"src/s2cellunion.cc" \
 "src/em_wrapper.cc"

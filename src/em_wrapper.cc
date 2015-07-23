@@ -2,6 +2,7 @@
 #include "s2cellid.h"
 #include "s2cell.h"
 #include "s2latlng.h"
+#include "s2cellunion.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -33,12 +34,12 @@ vector<LngLat> cellToPolgyon(S2CellId id) {
     return polygons;
 }
 
-vector<LngLat> translateGeoHash(string hash_string) {
+vector<LngLat> getPolygonFromCellId(string hash_string) {
     S2CellId start = S2CellId::FromString(hash_string);
     return cellToPolgyon(start);
 }
 
-vector<LngLat> translateGeoHashFromNumbers(string minStr, string maxStr) {
+string getCellIdFromMinMax(string minStr, string maxStr) {
     // Find the common parent of min and max.
     S2CellId minCellId = S2CellId(static_cast<uint64>(std::stoll(minStr)));
     S2CellId maxCellId = S2CellId(static_cast<uint64>(std::stoll(maxStr)));
@@ -47,7 +48,22 @@ vector<LngLat> translateGeoHashFromNumbers(string minStr, string maxStr) {
     while (!parentId.contains(maxCellId)) {
         parentId = parentId.parent();
     }
-    return cellToPolgyon(parentId);
+    return parentId.toString();
+}
+
+vector<string> getCellUnion(vector<string> cellStrings) {
+    vector<S2CellId> cells;
+    for (auto c : cellStrings) {
+        cells.push_back(S2CellId::FromString(c));
+    }
+
+    S2CellUnion cellUnion;
+    cellUnion.Init(cells);
+    vector<string> resultCells;
+    for (auto c : cellUnion.cell_ids()) {
+        resultCells.push_back(c.toString());
+    }
+    return resultCells;
 }
 
 EMSCRIPTEN_BINDINGS(s2_wrappers) {
@@ -57,9 +73,11 @@ EMSCRIPTEN_BINDINGS(s2_wrappers) {
         ;
 
     register_vector<LngLat>("VectorLngLat");
+    register_vector<string>("VectorString");
 
-    function("translateGeoHash", &translateGeoHash);
-    function("translateGeoHashFromNumbers", &translateGeoHashFromNumbers);
+    function("getPolygonFromCellId", &getPolygonFromCellId);
+    function("getCellIdFromMinMax", &getCellIdFromMinMax);
+    function("getCellUnion", &getCellUnion);
 }
 
 int main(int argc, char* argv[]) {
@@ -69,7 +87,7 @@ int main(int argc, char* argv[]) {
     }
 
     cout << hash_string << endl;
-    auto points = translateGeoHash(hash_string);
+    auto points = getPolygonFromCellId(hash_string);
     for (auto ll : points) {
         cout << ll.lng << " " << ll.lat << endl;
     }
@@ -77,7 +95,7 @@ int main(int argc, char* argv[]) {
     // Test numerical type index format
     cout << endl;
     string min = "3563805708640059393", max = "3563805710787543039";
-    for (auto ll : translateGeoHashFromNumbers(min, max)) {
+    for (auto ll : getPolygonFromCellId(getCellIdFromMinMax(min, max))) {
         cout << ll.lng << " " << ll.lat << endl;
     }
 }
